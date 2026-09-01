@@ -1,6 +1,4 @@
-# Especificação Técnica — Gerenciador de Processos de um Simulador de Sistema Operacional
-
----
+# Especificação Técnica — Gerenciador de Processos de Simulador de Sistema Operacional
 
 ## 1. Introdução e Contexto do Simulador
 
@@ -37,16 +35,16 @@ Está **fora do escopo**: gerenciamento de memória (paginação/segmentação),
 O simulador opera em um **laço principal (main loop)** guiado por um relógio lógico (_logical clock_), que avança em unidades discretas de tempo (_ticks_). A cada tick, o núcleo simulado executa uma sequência fixa de etapas:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     LAÇO PRINCIPAL (por tick)                 │
-├─────────────────────────────────────────────────────────────┤
-│ 1. Incrementar o Relógio Lógico Global                        │
-│ 2. Verificar chegada de novos processos (arquivo de tarefas)  │
-│    → Criar PCB e inserir na fila de Prontos (fork simulado)   │
-│ 3. Verificar processos Bloqueados                              │
-│    → Decrementar tempo de E/S restante                        │
-│    → Se E/S concluída, mover para fila de Prontos              │
-│ 4. Verificar Processo em Execução (se houver)                  │
+┌─────────────────────────────────────────────────────────────────┐
+│                     LAÇO PRINCIPAL (por tick)                   │
+├─────────────────────────────────────────────────────────────────┤
+│ 1. Incrementar o Relógio Lógico Global                          │
+│ 2. Verificar chegada de novos processos (arquivo de tarefas)    │
+│    → Criar PCB e inserir na fila de Prontos (fork simulado)     │
+│ 3. Verificar processos Bloqueados                               │
+│    → Decrementar tempo de E/S restante                          │
+│    → Se E/S concluída, mover para fila de Prontos               │
+│ 4. Verificar Processo em Execução (se houver)                   │
 │    a. Decrementar quantum / rajada de CPU restante              │
 │    b. Verificar se o processo solicitou E/S                     │
 │    c. Verificar se o processo terminou (exit)                   │
@@ -57,7 +55,7 @@ O simulador opera em um **laço principal (main loop)** guiado por um relógio l
 │ 6. Atualizar estatísticas (tempo de espera, tempo de CPU, etc.) │
 │ 7. Registrar eventos no log de transições                       │
 │ 8. Verificar condição de parada (todas as tarefas finalizadas)  │
-└─────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 Esse laço se repete até que **todos os processos declarados no arquivo de tarefas tenham atingido o estado Terminado**.
@@ -134,7 +132,7 @@ O **Bloco de Controle de Processo (PCB)** é a estrutura de dados central do sim
 | `indice_rajada_atual`  | inteiro            | Ponteiro lógico indicando qual rajada (CPU ou E/S) está em processamento.                                                      |
 | `quantum_restante`     | inteiro            | Unidades de tempo restantes na fatia de tempo atual (relevante para Round Robin).                                              |
 
-#### 4.1.2 Representação Estrutural (pseudocódigo / independente de linguagem)
+#### 4.1.2 Representação Estrutural (pseudocódigo)
 
 ```
 estrutura PCB:
@@ -159,7 +157,7 @@ estrutura RegisterSet:
     FLAGS: inteiro = 0
 ```
 
-> **Nota para geração de código:** a estrutura acima deve ser implementada como classe/`struct`/`dataclass` (dependendo da linguagem-alvo escolhida pelo Harness), com métodos de acesso controlado (getters/setters) e um método `__repr__`/`toString` que auxilie na geração dos logs de transição.
+> **Nota:** a estrutura acima deve ser implementada como classe/`struct`/`dataclass` (dependendo da linguagem-alvo escolhida pelo Harness), com métodos de acesso controlado (getters/setters) e um método `__repr__`/`toString` que auxilie na geração dos logs de transição.
 
 ### 4.2 Tabela de Processos
 
@@ -210,20 +208,20 @@ O simulador deve modelar obrigatoriamente os três estados clássicos de execuç
 
 ```
                     (fork / criação)
-        [NOVO] ─────────────────────────► [PRONTO]
-                                              │  ▲
-                          escalonador escolhe │  │ E/S concluída
+        [NOVO] ─────────────────────────►   [PRONTO]
+                                               │  ▲
+                           escalonador escolhe │  │ E/S concluída
                           o processo (dispatch)│  │ (interrupção de E/S)
-                                              ▼  │
-                                        [EM_EXECUCAO]
+                                               ▼  │
+                                         [EM_EXECUCAO]
                                           │   │   │
              quantum expira (interrupção  │   │   │ solicitação de E/S
              de relógio) ─────────────────┘   │   └───────────► [BLOQUEADO]
-                     volta para PRONTO         │
-                                                │ exit() /
-                                                │ fim das rajadas
-                                                ▼
-                                          [TERMINADO]
+                     volta para PRONTO        │
+                                              │ exit() /
+                                              │ fim das rajadas
+                                              ▼
+                                         [TERMINADO]
 ```
 
 ### 5.3 Especificação Detalhada das Transições
@@ -320,7 +318,7 @@ funcao prioridade.aplicar_aging(fila_prontos):
     reordenar fila_prontos por prioridade
 ```
 
-> **Nota de implementação:** recomenda-se manter dois contadores distintos no PCB caso o aging reinicie: `tempo_espera` (estatística acumulada, nunca reiniciada) e `tempo_espera_aging` (reiniciado a cada promoção). Caso o Harness opte por simplificar, um único contador pode ser usado, desde que documentado no código gerado.
+> **Nota:** recomenda-se manter dois contadores distintos no PCB caso o aging reinicie: `tempo_espera` (estatística acumulada, nunca reiniciada) e `tempo_espera_aging` (reiniciado a cada promoção). Caso o Harness opte por simplificar, um único contador pode ser usado, desde que documentado no código gerado.
 
 #### 6.3.4 Preempção em Escalonamento por Prioridade
 
@@ -380,7 +378,7 @@ O simulador deve produzir, ao final da execução (ou opcionalmente em tempo rea
 Representação em texto (ASCII) da alocação da CPU ao longo do tempo, no formato:
 
 ```
-Tick:     0    1    2    3    4    5    6    7    8    9   10
+Tick:     0     1     2     3     4     5     6     7     8     9     10
 CPU:    [ P1 ][ P1 ][ P2 ][ P2 ][ P1 ][ -- ][ P3 ][ P3 ][ P1 ][ P2 ][ P3 ]
 ```
 
@@ -414,7 +412,7 @@ Relatório-resumo final, contendo, no mínimo:
 
 ---
 
-## 9. Diretrizes de Entrega para Geração de Código via Harness
+## 9. Diretrizes de Entrega para Geração de Código
 
 Este documento constitui a **especificação de entrada** para a geração de código por um Harness de desenvolvimento assistido (ex.: Claude Code, Open Code). As seguintes diretrizes devem ser observadas na fase de implementação:
 
