@@ -24,10 +24,10 @@ Abaixo estão as capturas de tela documentando cada etapa seguida no terminal du
 
 ### Etapa 5:
 
-_Edição do código no Nano:_
+#### _Edição do código no Nano:_
 ![Etapa 5.1: Criação do Script](Captura%20de%20tela%20-%20etapa%205.1.png)
 
-_Permissão de execução e teste do script:_
+#### _Permissão de execução e teste do script:_
 ![Etapa 5.2: Execução do Script](Captura%20de%20tela%20-%20etapa%205.2.png)
 
 ### Etapa 6:
